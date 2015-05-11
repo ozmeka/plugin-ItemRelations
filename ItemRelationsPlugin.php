@@ -27,6 +27,7 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
         'admin_items_batch_edit_form',
         'items_batch_edit_custom',
         'public_items_show',
+    	'public_head',
         'items_browse_sql',
     );
 
@@ -257,6 +258,15 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
         }
     }
 
+    /**
+     * Add libraries and inits to page header on render
+     */
+    
+    public function hookPublicHead() {
+    	queue_js("accordion.js");
+    	
+    }
+    
     /**
      * Display item relations on the admin items show page.
      *

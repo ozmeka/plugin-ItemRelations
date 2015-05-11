@@ -3,7 +3,7 @@
     <?php if (!$subjectRelations && !$objectRelations): ?>
     <p><?php echo __('This item has no relations.'); ?></p>
     <?php else: ?>
-    <table>
+    <table class="accordion">
         <?php foreach ($subjectRelations as $subjectRelation): ?>
         <tr>
             <td><?php echo __('This Item'); ?></td>
