@@ -48,7 +48,7 @@ class Table_ItemRelationsRelation extends Omeka_Db_Table
     {
         $db = $this->getDb();
         $select = $this->getSelect()
-            ->where('item_relations_relations.subject_item_id = ?', (int) $subjectItemId);
+            ->where('item_relations_relations.subject_item_id = ?', (int) $subjectItemId)->order('property_id');
         return $this->fetchObjects($select);
     }
     
@@ -61,7 +61,7 @@ class Table_ItemRelationsRelation extends Omeka_Db_Table
     {
         $db = $this->getDb();
         $select = $this->getSelect()
-            ->where('item_relations_relations.object_item_id = ?', (int) $objectItemId);
+            ->where('item_relations_relations.object_item_id = ?', (int) $objectItemId)->order('property_id');
         return $this->fetchObjects($select);
     }
 }

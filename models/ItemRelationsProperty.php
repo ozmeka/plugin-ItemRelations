@@ -8,7 +8,7 @@
 /**
  * Item Relations Property model.
  */
-class ItemRelationsProperty extends Omeka_Record_AbstractRecord
+class ItemRelationsProperty extends Omeka_Record_AbstractRecord implements Zend_Acl_Resource_Interface
 {
     /**
      * @var int
@@ -27,8 +27,14 @@ class ItemRelationsProperty extends Omeka_Record_AbstractRecord
     public $local_part;
 
     /**
+     * Human-friendly equivalent name for the internal name property.
+     * @var string
+     */
+    public $friendly_part;
+
+    /**
      * Human-readable name for the property.
-     * @var string 
+     * @var string
      */
     public $label;
 
@@ -56,6 +62,11 @@ class ItemRelationsProperty extends Omeka_Record_AbstractRecord
             && $hasPrefixLocalPart
         ) {
             $text = $this->vocabulary_namespace_prefix . ':' . $this->local_part;
+        } else if (get_option('item_relations_relation_format') == 'friendly_part'
+            && $this->friendly_part
+        ) {
+            $text = $this->friendly_part;
+
         } else if ($hasLabel) {
             $text = $this->label;
         } else {
@@ -63,5 +74,18 @@ class ItemRelationsProperty extends Omeka_Record_AbstractRecord
         }
 
         return $text;
+    }
+
+
+     /**
+     * Identify records as relating to their ACL resource.
+     *
+     * Required by Zend_Acl_Resource_Interface.
+     *
+     * @return string
+     */
+    public function getResourceId()
+    {
+        return 'ItemRelations_Vocabularies';
     }
 }

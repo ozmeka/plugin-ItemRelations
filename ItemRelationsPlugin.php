@@ -5,6 +5,10 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
  */
 
+
+require_once('controllers/ItemAutocompleteController.php');
+
+
 /**
  * Item Relations plugin.
  */
@@ -37,7 +41,90 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
     protected $_filters = array(
         'admin_items_form_tabs',
         'admin_navigation_main',
+	'api_resources',
     );
+
+    public function filterApiResources($apiResources)
+    {
+        // For the resource URI: /api/your_resources/[:id]
+        $apiResources['item_relations'] = array(
+            // Module associated with your resource.
+            //'module' => 'ItemRelationsPlugin',
+            // Controller associated with your resource.
+            // Type of record associated with your resource.
+            'record_type' => 'ItemRelationsRelation',
+            // List of actions available for your resource.
+            'actions' => array(
+                'index',  // GET request without ID
+                'get',    // GET request with ID
+                'post',   // POST request
+                'put',    // PUT request (ID is required)
+                'delete', // DELETE request (ID is required)
+            ),
+            // List of GET parameters available for your index action.
+            'index_params' => array('subject_item_id', 'object_item_id', 'property_id'),
+        );
+        //Added GET only for looking up properties, TODO Post and Put
+        $apiResources['item_relations_vocabularies'] = array(
+            // Module associated with your resource.
+            //'module' => 'ItemRelationsPlugin',
+            // Controller associated with your resource.
+            // Type of record associated with your resource.
+            'record_type' => 'ItemRelationsVocabulary',
+            // List of actions available for your resource.
+            'actions' => array(
+                'index',  // GET request without ID
+                'get',    // GET request with ID
+                'post',   // POST request
+                'put',    // PUT request (ID is required)
+                'delete', // DELETE request (ID is required)
+            ),
+            // List of GET parameters available for your index action.
+            'index_params' => array('label', 'id', 'name', 'namespace_uri', 'namespace_prefix'),
+        );
+
+        //Added GET only for looking up properties, TODO Post and Put
+        $apiResources['item_relations_properties'] = array(
+            // Module associated with your resource.
+            //'module' => 'ItemRelationsPlugin',
+            // Controller associated with your resource.
+            // Type of record associated with your resource.
+            'record_type' => 'ItemRelationsProperty',
+            // List of actions available for your resource.
+            'actions' => array(
+                'index',  // GET request without ID
+                'get',    // GET request with ID
+                'post',   // POST request
+                'put',    // PUT request (ID is required)
+                'delete', // DELETE request (ID is required)
+            ),
+            // List of GET parameters available for your index action.
+            'index_params' => array('label', 'id', 'vocabulary_id'),
+        );
+    /*
+        //Added GET only
+        $apiResources['autocomplete_item'] = array(
+            // Module associated with your resource.
+            // 'module' => 'ItemRelationsPlugin',
+            'module' => 'item-relations',
+            // Controller associated with your resource.
+            'controller' => 'item-autocomplete',
+            // Type of record associated with your resource.
+            // 'record_type' => 'Item',
+            // List of actions available for your resource.
+            'actions' => array(
+                // 'index',  // GET request without ID
+                'get',    // GET request with search term
+                //'post',   // POST request
+                //'put',    // PUT request (ID is required)
+                //'delete', // DELETE request (ID is required)
+            ),
+            // List of GET parameters available for your index action.
+            // 'index_params' => array('label', 'id', 'vocabulary_id'),
+        );
+    */
+        return $apiResources;
+    }
 
     /**
      * @var array Options and their default values.
@@ -72,6 +159,7 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
             `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
             `vocabulary_id` int(10) unsigned NOT NULL,
             `local_part` varchar(100) NOT NULL,
+            `friendly_part` varchar(100) DEFAULT NULL,
             `label` varchar(100) DEFAULT NULL,
             `description` text,
             PRIMARY KEY (`id`)
@@ -105,6 +193,7 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
                 $property = new ItemRelationsProperty;
                 $property->vocabulary_id = $vocabularyId;
                 $property->local_part = $formalProperty['local_part'];
+                $property->friendly_part = $formalProperty['friendly_part'];
                 $property->label = $formalProperty['label'];
                 $property->description = $formalProperty['description'];
                 $property->save();
@@ -237,11 +326,13 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookDefineAcl($args)
     {
         $acl = $args['acl'];
-
+        //$relationsResource = new Zend_Acl_Resource('ItemRelations_Relations');
         $indexResource = new Zend_Acl_Resource('ItemRelations_Index');
         $vocabResource = new Zend_Acl_Resource('ItemRelations_Vocabularies');
         $acl->add($indexResource);
         $acl->add($vocabResource);
+	$acl->addResource('Relations');
+	$acl->allow(null, 'Relations');
     }
 
     /**
@@ -291,7 +382,7 @@ class ItemRelationsPlugin extends Omeka_Plugin_AbstractPlugin
             'formSelectProperties' => get_table_options('ItemRelationsProperty'))
         );
     }
-    
+
     /**
      * Save the item relations after saving an item add/edit form.
      *
